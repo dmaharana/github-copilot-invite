@@ -1,0 +1,6 @@
+@server = http://localhost:8080
+@token = your-api-token-here-cc
+
+### get orgs
+GET {{server}}/api/v1/orgs
+Authorization: Bearer {{token}}
