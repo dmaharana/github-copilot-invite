@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github-copilot-invite/internal/config"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -13,6 +15,7 @@ type Config struct {
 	Port        string
 	Environment string
 	SSL         SSLConfig
+	Tokens      TokenConfig
 }
 
 // SSLConfig holds SSL-specific configuration
@@ -22,8 +25,21 @@ type SSLConfig struct {
 	KeyFile  string
 }
 
+// TokenConfig holds sensitive token configuration
+type TokenConfig struct {
+	GitHub     string
+	Smartsheet string
+	API        string
+}
+
 // NewConfig creates a new server configuration from viper settings
 func NewConfig() *Config {
+	// Get configuration manager
+	configMgr, err := config.NewManager("config.yaml")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create config manager")
+	}
+
 	port := viper.GetString("server.port")
 	if port == "" {
 		port = "8080"
@@ -37,6 +53,11 @@ func NewConfig() *Config {
 			Enabled:  viper.GetBool("server.ssl.enabled"),
 			CertFile: viper.GetString("server.ssl.cert_file"),
 			KeyFile:  viper.GetString("server.ssl.key_file"),
+		},
+		Tokens: TokenConfig{
+			GitHub:     configMgr.GetDecrypted("github.token"),
+			Smartsheet: configMgr.GetDecrypted("smartsheet.token"),
+			API:        configMgr.GetDecrypted("api.token"),
 		},
 	}
 

@@ -1,5 +1,5 @@
 @server = http://localhost:8080
-@token = your-api-token-here-cc
+@token = your-api-token-here
 
 ### get orgs
 GET {{server}}/api/v1/orgs
