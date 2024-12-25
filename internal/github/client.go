@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/v60/github"
-	"golang.org/x/oauth2"
 )
 
 type Client struct {
@@ -15,11 +14,8 @@ type Client struct {
 
 func NewClient(token string) *Client {
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+	// Token is already decrypted at config level
+	client := github.NewClient(nil).WithAuthToken(token)
 
 	return &Client{
 		client: client,
@@ -77,4 +73,52 @@ func (c *Client) SendCopilotInvite(org, team, username string) error {
 	// Note: This is a placeholder for the actual Copilot invite API
 	// GitHub's API for Copilot management might require specific endpoints or permissions
 	return fmt.Errorf("copilot invite functionality not implemented")
+}
+
+// Get team members
+func (c *Client) ListTeamMembers(org, team string) ([]*github.User, error) {
+	// First get the team ID
+	teams, err := c.ListTeams(org)
+	if err != nil {
+		return nil, fmt.Errorf("error listing teams: %v", err)
+	}
+
+	if len(teams) == 0 {
+		return nil, fmt.Errorf("no teams found in organization %s", org)
+	}
+
+	// get Organization ID from one of the teams
+	orgID := teams[0].GetOrganization().GetID()
+
+	var teamID int64
+	for _, t := range teams {
+		if t.GetName() == team {
+			teamID = t.GetID()
+			break
+		}
+	}
+
+	if teamID == 0 {
+		return nil, fmt.Errorf("team %s not found in organization %s", team, org)
+	}
+
+	opts := &github.TeamListTeamMembersOptions{
+		ListOptions: github.ListOptions{
+			PerPage: 100,
+		},
+	}
+	var allMembers []*github.User
+	for {
+		members, resp, err := c.client.Teams.ListTeamMembersByID(c.ctx, orgID, teamID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("error listing team members: %v", err)
+		}
+		allMembers = append(allMembers, members...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return allMembers, nil
 }

@@ -24,8 +24,11 @@ func SetupRoutes(r *gin.Engine, h *handlers.Handler) {
 		api.GET("/orgs", h.ListOrganizations)
 		api.GET("/orgs/:org/teams", h.ListTeams)
 		api.POST("/orgs/:org/teams", h.CreateTeam)
-		
+
 		// GitHub Copilot invite endpoint
 		api.POST("/copilot/invite", h.SendCopilotInvite)
+
+		// Health check endpoint (unprotected)
+		r.GET("/healthcheck", h.HealthCheck)
 	}
 }

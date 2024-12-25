@@ -2,8 +2,11 @@ package main
 
 import (
 	"github-copilot-invite/internal/config"
+	"github-copilot-invite/internal/handlers"
 	"github-copilot-invite/internal/logger"
 	"github-copilot-invite/internal/server"
+	"github-copilot-invite/internal/updater"
+	"github.com/spf13/viper"
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
@@ -34,6 +37,16 @@ func init() {
 }
 
 func main() {
+	// create handler
+	h := handlers.NewHandler(
+		viper.GetString("github.token"),
+		viper.GetString("smartsheet.token"),
+		viper.GetInt64("smartsheet.sheet_id"),
+	)
+
+	// Create and start server
+	updater.NewOrgsTrigger(h)
+
 	// Create and start server
 	srv := server.New()
 	if err := srv.Start(); err != nil {

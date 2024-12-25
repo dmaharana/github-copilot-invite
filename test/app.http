@@ -4,3 +4,10 @@
 ### get orgs
 GET {{server}}/api/v1/orgs
 Authorization: Bearer {{token}}
+
+
+### health check
+GET {{server}}/healthcheck
+
+### health check
+GET {{server}}/health

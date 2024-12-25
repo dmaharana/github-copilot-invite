@@ -15,3 +15,10 @@ server:
     enabled: true  # Set to false to use HTTP
     cert_file: "certs/server.crt"
     key_file: "certs/server.key"
+
+rabbitmq:
+  host: "localhost"
+  port: 5672
+  username: "guest"
+  password: "guest"
+  vhost: "/"
